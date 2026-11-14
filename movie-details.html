@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Details</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <style type="text/tailwindcss">
+        @theme {
+            --font-sans: "Barlow", ui-sans-serif, system-ui, sans-serif;
+            --font-display: "Barlow Condensed", "Arial Narrow", ui-sans-serif, sans-serif;
+            --color-gold: #d9a441;
+        }
+
+        @layer base {
+            :focus-visible { @apply outline-2 outline-offset-2 outline-red-500; }
+        }
+
+        /*
+          Styles for markup that movie-details.js creates at runtime. Structure it relies on:
+          #movie-details > [1] poster, [2] info
+          info > [1] h1, [2] release/rating row, [3] plot, [4] director + writer,
+                 [5] actors, [6] language + country, [7] IMDb button
+        */
+        @layer components {
+            #movie-details > div:first-child:not(.loader) {
+                /* default poster shown when OMDb has no image or the image fails to load */
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 300'%3E%3Crect width='200' height='300' fill='%23171717'/%3E%3Cpath transform='translate(70 105) scale(2.5)' fill='%23525252' d='M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2zm0 2v3h2.5l1.5-3H4zm4.5 0l-1.5 3h3l1.5-3H8.5zm5 0l-1.5 3h3l1.5-3h-3zm5 0l-1.5 3H20V6h-1.5zM4 11v7h16v-7H4z'/%3E%3C/svg%3E");
+                background-size: cover;
+                background-position: center;
+                @apply aspect-[2/3] w-full max-w-xs mx-auto self-start overflow-hidden rounded-md bg-neutral-900 shadow-2xl shadow-black ring-1 ring-white/15 md:sticky md:top-24 md:max-w-none;
+            }
+            #movie-details img { @apply h-full w-full object-cover; }
+            #movie-details img[src="N/A"] { visibility: hidden; }
+
+            #movie-details > div:nth-child(2) { @apply flex flex-col gap-8; }
+            #movie-details h1 { @apply font-display text-6xl font-bold uppercase leading-[0.9] tracking-tight text-stone-100 md:text-8xl; }
+
+            /* release, rated, runtime, genre and IMDb rating as chips */
+            #movie-details > div:nth-child(2) > div:nth-child(2) { @apply -mt-3 flex flex-wrap gap-2; }
+            #movie-details > div:nth-child(2) > div:nth-child(2) p { @apply rounded-full border border-white/15 px-3.5 py-1 text-sm text-neutral-200; }
+            #movie-details > div:nth-child(2) > div:nth-child(2) p:last-child { @apply border-gold/60 bg-gold/10 font-semibold text-gold; }
+
+            /* plot, crew, cast, language blocks */
+            #movie-details > div:nth-child(2) > div:nth-child(n+3) { @apply border-t border-white/10 pt-6; }
+            #movie-details > div:nth-child(2) > div:nth-child(4),
+            #movie-details > div:nth-child(2) > div:nth-child(6) { @apply grid gap-6 sm:grid-cols-2; }
+
+            /* the JS prints labels in capitals; shown here in sentence case */
+            #movie-details > div:nth-child(2) > div:nth-child(n+3) p:first-child { @apply mb-1 text-sm lowercase text-neutral-400; }
+            #movie-details > div:nth-child(2) > div:nth-child(n+3) p:first-child::first-letter { @apply uppercase; }
+            #movie-details > div:nth-child(2) > div:nth-child(n+3) p:last-child { @apply text-lg leading-relaxed text-neutral-100; }
+
+            /* plot gets a large red initial */
+            #movie-details > div:nth-child(2) > div:nth-child(3) p:last-child { @apply max-w-prose text-neutral-300; }
+            #movie-details > div:nth-child(2) > div:nth-child(3) p:last-child::first-letter { @apply float-left mr-3 font-display text-7xl font-bold leading-[0.8] text-red-500; }
+
+            /* the link fills the button so the whole area is clickable */
+            #movie-details button { @apply self-start cursor-pointer overflow-hidden rounded bg-red-600 font-medium text-white shadow-lg shadow-red-950/60 transition-colors hover:bg-red-500; }
+            #movie-details button a { @apply block px-7 py-3.5 text-lg; }
+            #movie-details button a:focus-visible { @apply -outline-offset-4 outline-white; }
+
+            #movie-details > .loader { @apply col-span-full justify-self-center mt-24; }
+        }
+
+        /* Outside the layer on purpose: style.css is unlayered and would win otherwise */
+        #movie-details .loader { @apply bg-red-600; }
+    </style>
+</head>
+
+<body class="min-h-screen bg-black text-neutral-300 antialiased selection:bg-red-600 selection:text-white">
+    <header class="fixed inset-x-0 top-0 z-20 border-b border-white/10 bg-black/80 backdrop-blur-md">
+        <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+            <a href="index.html" class="flex items-center gap-2">
+                <svg class="w-7 h-7 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2zm0 2v3h2.5l1.5-3H4zm4.5 0l-1.5 3h3l1.5-3H8.5zm5 0l-1.5 3h3l1.5-3h-3zm5 0l-1.5 3H20V6h-1.5zM4 11v7h16v-7H4z" />
+                </svg>
+                <span class="font-display text-2xl font-semibold tracking-wide text-white">MovieHub</span>
+            </a>
+
+            <a href="index.html#search" class="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-1.5 text-sm text-neutral-200 transition-colors hover:border-red-600 hover:text-white">
+                <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Search
+            </a>
+        </nav>
+    </header>
+
+    <div id="movie-details" class="mx-auto grid max-w-6xl gap-10 px-6 pb-24 pt-28 md:grid-cols-[18rem_1fr] md:gap-14 lg:grid-cols-[22rem_1fr]"><div class="loader"></div></div>
+
+    <script src="movie-details.js"></script>
+</body>
+
+</html>
